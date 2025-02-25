@@ -1,13 +1,9 @@
 from fastapi import FastAPI
+from routes.image_routes import router as image_router
+app = FastAPI(title="Photo Editor API", version="1.0")
 
-app = FastAPI()
-
+app.include_router(image_router)
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+def read_root ():
+    return {"message": "Photo Editor API is running 🚀"}
