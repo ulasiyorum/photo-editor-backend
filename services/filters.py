@@ -10,14 +10,19 @@ def apply_sketch_filter(image: np.ndarray, intensity: int) -> np.ndarray:
         return image
 
     intensity = intensity / 100
-    grayscale = np.array(np.dot(image[..., :3], [0.299, 0.587, 0.114]), dtype=np.uint8)
-    grayscale = np.stack((grayscale,) * 3, axis=-1)
-    inverted = 255 - grayscale
-    blurred = cv2.GaussianBlur(inverted, ksize=(0, 0), sigmaX=5)
-    result = grayscale * 255.0 / (255.0 - blurred)
-    result[result > 255] = 255
-    result[grayscale == 255] = 255
+    grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    sketch_lines = cv2.adaptiveThreshold(grayscale, 255,
+                                         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                         cv2.THRESH_BINARY, 9, 2)
+
+    inverted = 255 - grayscale
+
+    blurred = cv2.GaussianBlur(inverted, (21, 21), sigmaX=10, sigmaY=10)
+
+    sketch_shading = cv2.divide(grayscale, 255 - blurred, scale=256)
+
+    result = cv2.bitwise_and(sketch_shading, sketch_lines)
     result = result.astype('uint8')
 
     if intensity == 1:
