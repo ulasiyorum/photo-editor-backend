@@ -30,6 +30,8 @@ def apply_sketch_filter(image: np.ndarray, intensity: int) -> np.ndarray:
 
     result = cv2.multiply(result, paper_texture, scale=1 / 255.0)
 
+    result = cv2.cvtColor(result, cv2.COLOR_GRAY2RGBA)
+    
     result = result.astype('uint8')
 
     if intensity == 1:
