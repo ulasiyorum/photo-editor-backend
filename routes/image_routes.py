@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Response
 from services.filters import apply_sketch_filter
+from services.transformations import rotate
 from PIL import Image
 import cv2
 import io
@@ -16,5 +17,18 @@ async def sketch_image(file: UploadFile = File(...), intensity: int = 50):
 
     sketch = apply_sketch_filter(image, intensity)
     correct_color = cv2.cvtColor(sketch, cv2.COLOR_BGR2RGB)
+    _, encoded_img = cv2.imencode('.' + image_format, correct_color)
+    return Response(content=encoded_img.tobytes(), media_type=file.content_type)
+
+
+@router.post("/rotate")
+async def rotate_image(file: UploadFile = File(...), angle: int = 90):
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes))
+    image_format = image.format
+    image = np.array(image)
+
+    rotated = rotate(image, angle)
+    correct_color = cv2.cvtColor(rotated, cv2.COLOR_BGR2RGB)
     _, encoded_img = cv2.imencode('.' + image_format, correct_color)
     return Response(content=encoded_img.tobytes(), media_type=file.content_type)
